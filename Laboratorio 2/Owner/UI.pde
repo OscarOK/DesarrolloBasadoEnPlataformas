@@ -1,17 +1,21 @@
 void mousePressed() {
-  if (mouseY <= 100 && mouseX > 0 && mouseX < width/3)
-    KetaiKeyboard.toggle(this);  // 1
-  else if
-    (mouseY <= 100 && mouseX > width/3 && mouseX < 2*(width/3)) //config button
-    isConfiguring=true; // 2
-  else if
-    (mouseY <= 100 && mouseX >  2*(width/3) && mouseX < width) // draw button
-  {
-    if (isConfiguring)
-    {
-      background(78, 93, 75);
-      isConfiguring=false;
-    }
+  float left = callButton.x - (callButton.buttonWidth/2f);
+  float right = callButton.x + (callButton.buttonWidth/2f);
+  float top = callButton.y - (callButton.buttonHeight/2f);
+  float bottom = callButton.y + (callButton.buttonHeight/2f);
+  
+  if (mouseX >= left && mouseX <= right && mouseY <= bottom && mouseY >= top) {
+    println("CALLING...");
+    callButton.isPressed = true;
+    OscMessage call = new OscMessage("/call/");
+    call.add(911);
+    oscP5.send(call, myRemoteLocation);
+  }
+}
+
+void mouseReleased() {
+  if (callButton.isPressed) {
+    callButton.isPressed = false;
   }
 }
 
@@ -30,39 +34,13 @@ void keyPressed() {
     bt.makeDiscoverable();  // 6
 }
 
+
 void drawUI()
 {
-  pushStyle();  // 7
-  fill(0);
-  stroke(255);
-  rect(0, 0, width/3, 100);
-
-  if (isConfiguring)
-  {
-    noStroke();
-    fill(78, 93, 75);
-  }
-  else
-    fill(0);
-
-  rect(width/3, 0, width/3, 100);
-  if (!isConfiguring)
-  {
-    noStroke();
-    fill(78, 93, 75);
-  }
-  else
-  {
-    fill(0);
-    stroke(255);
-  }
-  rect((width/3)*2, 0, width/3, 100);
-  fill(255);
-  text("Keyboard", 5, 70); // 8
-  text("Bluetooth", width/3+5, 70); // 9
-  text("Interact", width/3*2+5, 70); // 10
-  popStyle();
+  callButton.update();
+  infoCard.update();
 }
+
 
 void onKetaiListSelection(KetaiList connectionList)  // 11
 {
