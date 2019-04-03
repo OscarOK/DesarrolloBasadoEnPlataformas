@@ -22,7 +22,10 @@ SimpleCard infoCard;
 
 String buttonText = "CALL 911";
 String cardTitle = "Car Messages";
+String content = "There aren't new messages";
+String prevContent; 
 
+int timer;
 float margin = 32f;
 float buttonHeight = 120f;
 float cardHeight = 1000f;
@@ -43,27 +46,20 @@ void setup() {
 }
 
 void draw() {
+  if (millis() - timer >= 30000) {
+    infoCard.content = content;
+    timer = millis();
+  }
+  
+  background(#eeeeee);
   drawUI();
 }
 
-void mouseDragged() {
-  if (isConfiguring)
-    return;
-
-  OscMessage m = new OscMessage("/remoteMouse/");
-  m.add(mouseX);
-  m.add(mouseY);
-
-  bt.broadcast(m.getBytes());
-  // use writeToDevice(String _devName, byte[] data) to target a specific device
-  ellipse(mouseX, mouseY, 20, 20);
-}
-
-void onBluetoothDataEvent(String who, byte[] data) {
-  KetaiOSCMessage m = new KetaiOSCMessage(data);
-  
-  if (m.isValid() && m.checkAddrPattern("/car/"))
+void onBluetoothDataEvent(String who, byte[] data) { 
+  if (data != null)
   {
-    infoCard.content = m.get(0).stringValue();
+    prevContent = infoCard.content;
+    infoCard.content = new String(data);
+    println(infoCard.content);
   }
 }
