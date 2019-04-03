@@ -5,8 +5,11 @@ import ketai.net.bluetooth.*;
 import ketai.ui.*;
 import ketai.net.*;
 import oscP5.*;
+import netP5.*;
 
+OscP5 oscP5;
 KetaiBluetooth bt;
+NetAddress myRemoteLocation;
 
 KetaiList connectionList;
 String info = "";
@@ -14,55 +17,32 @@ PVector remoteCursor = new PVector();
 boolean isConfiguring = true;
 String UIText;
 
+SimpleButton callButton;
+SimpleCard infoCard;
+
+String buttonText = "CALL 911";
+String cardTitle = "Car Messages";
+
+float margin = 32f;
+float buttonHeight = 120f;
+float cardHeight = 1000f;
+
 void setup() {
+  oscP5 = new OscP5(this, 12000, OscP5.UDP);
+  println(NetInfo.lan());
+  // send to computer address
+  myRemoteLocation = new NetAddress("192.168.100.56", 32000);
+  
   orientation(PORTRAIT);
-  background(78, 93, 75);
-  stroke(255);
-  textSize(48);
-
+  background(#eeeeee);
+ 
   bt.start();
-
-  UIText =  "[b] - make this device discoverable\n" +
-    "[d] - discover devices\n" +
-    "[c] - pick device to connect to\n" +
-    "[p] - list paired devices\n" +
-    "[i] - show Bluetooth info";
+  
+  callButton = new SimpleButton(width/2f, height - margin - (buttonHeight/2f), width - (2 * margin), buttonHeight, buttonText);
+  infoCard = new SimpleCard(width/2f, margin + (cardHeight/2f), width - (2 * margin), cardHeight, cardTitle);
 }
 
 void draw() {
-  if (isConfiguring) {
-    ArrayList<String> devices;
-    background(78, 93, 75);
-
-    if (key == 'i')
-      info = getBluetoothInformation();
-    else {
-      if (key == 'p') {
-        info = "Paired Devices:\n";
-        devices = bt.getPairedDeviceNames();
-      }
-      else {
-        info = "Discovered Devices:\n";
-        devices = bt.getDiscoveredDeviceNames();
-      }
-
-      for (int i=0; i < devices.size(); i++) {
-        info += "["+i+"] "+devices.get(i).toString() + "\n";
-      }
-    }
-    text(UIText + "\n\n" + info, 5, 200);
-  }
-  else {
-    background(78, 93, 75);
-    pushStyle();
-    fill(255);
-    ellipse(mouseX, mouseY, 50, 50);
-    fill(0, 255, 0);
-    stroke(0, 255, 0);
-    ellipse(remoteCursor.x, remoteCursor.y, 50, 50);
-    popStyle();
-  }
-
   drawUI();
 }
 
@@ -80,35 +60,10 @@ void mouseDragged() {
 }
 
 void onBluetoothDataEvent(String who, byte[] data) {
-  if (isConfiguring)
-    return;
-
   KetaiOSCMessage m = new KetaiOSCMessage(data);
-  if (m.isValid())
+  
+  if (m.isValid() && m.checkAddrPattern("/car/"))
   {
-    if (m.checkAddrPattern("/remoteMouse/"))
-    {
-      if (m.checkTypetag("ii"))
-      {
-        remoteCursor.x = m.get(0).intValue();
-        remoteCursor.y = m.get(1).intValue();
-      }
-    }
+    infoCard.content = m.get(0).stringValue();
   }
-}
-
-String getBluetoothInformation() {
-  String btInfo = "Server Running: ";
-  btInfo += bt.isStarted() + "\n";
-  btInfo += "Discovering: " + bt.isDiscovering() + "\n";
-  btInfo += "Device Discoverable: "+bt.isDiscoverable() + "\n";
-  btInfo += "\nConnected Devices: \n";
-
-  ArrayList<String> devices = bt.getConnectedDeviceNames();
-  for (String device: devices)
-  {
-    btInfo+= device+"\n";
-  }
-
-  return btInfo;
 }
