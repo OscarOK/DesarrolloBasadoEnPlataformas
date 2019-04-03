@@ -4,7 +4,6 @@ b) Actividad en el sensor de aceleración y en el GPS indica que se están roban
 c) Actividad en el sensor de proximidad indica que alguien está asomandose por las ventanas del auto
 d) Actividad en el sensor touch indica que alguien esta intentando abrir/romper los cristales del auto
 e) Actividad en el sensor touch y en el sensor de luz indica que alguien entro al auto
-
 */
 
 import ketai.sensors.*;
@@ -13,12 +12,15 @@ import ketai.sensors.*;
 final static int TOUCH_THRESHOLD = 2000;
 final static int STRIKES = 3;
 final static double LIGHT_THRESHOLD = 12.0f;
+final static double ACCEL_THRESHOLD = 3.0f;
+final static double PROX_THRESHOLD = 2.0f;
+final static double GPS_THRESHOLD = 0.01f;
 
 KetaiSensor sensor;
 KetaiLocation location;
 PVector accelerometer;
-double longitude, latitude, altitude;
-float light = 0, proximity, accuracy;
+float light = 0, proximity;
+double lat = 0, lng = 0;
 
 int touchCount = 0;
 int touchInitTime;
@@ -35,26 +37,32 @@ void setup() {
   sensor.start();
   sensor.list();
   accelerometer = new PVector();
+  
+  // Start listening for BT connections
+  bt.start();
 }
 
-void draw() {
-  background(78, 93, 75);
-}
-
-void onAccelerometerEvent(float x, float y, float z, long time, int accuracy) {
-  accelerometer.set(x, y, z);
+void onAccelerometerEvent(float x, float y, float z) {
+  PVector tmp = new PVector(x, y, z);
+  if (abs(accelerometer.mag() - tmp.mag()) > ACCEL_THRESHOLD) {
+    notifyUser("Someone crash your car");
+  }
+  accelerometer = tmp;
 }
 
 void onLightEvent(float v) {
   if (light == 0)
     light = v;
-  if(abs(light - v) > LIGHT_THRESHOLD) {
+  if(light - v > LIGHT_THRESHOLD) {
     notifyUser("Someone is in your car");
   }
 }
 
 void onProximityEvent(float v) {
-    proximity = v;
+  if (v - proximity > PROX_THRESHOLD) {
+    notifyUser("Someone in your car's window");
+  }
+  proximity = v;
 }
 
 public void mousePressed() {
@@ -72,14 +80,24 @@ public void mousePressed() {
 
 void onLocationEvent(double _latitude, double _longitude,
   double _altitude, float _accuracy) {
-    
-  longitude = _longitude;
-  latitude = _latitude;
-  altitude = _altitude;
-  accuracy = _accuracy;
+    if(lat == 0 && lng == 0) {
+      lat = _latitude;
+      lng = _longitude;
+    }
+    if(abs(_latitude - lat) > GPS_THRESHOLD || abs(_longitude - lng) > GPS_THRESHOLD) {
+      notifyUser("Your car is beign stolen");
+    }
 }
 
 void notifyUser(String msg) {
   //TODO enviar información por bluetooth
   System.out.println(msg);
+  
+  byte[] data = msg.getBytes();
+  System.out.println(data);
+  bt.broadcast(data);
+}
+
+double abs(double a) {
+  return (a>0)? a : -a;
 }
