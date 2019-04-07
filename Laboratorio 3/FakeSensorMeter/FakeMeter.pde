@@ -13,7 +13,7 @@ class FakeMeter extends Meter {
   public FakeMeter(PApplet parent, int x, int y, int index) {
     super(parent, x, y);
     this.index = index;
-    setUp(0, 51, 0, 1, 180, 360);
+    setUp(0, 100, 0, 1, 180, 360);
     setScaleLabels(scaleLabels);
     
     updateData();
@@ -36,7 +36,6 @@ class FakeMeter extends Meter {
   }
   
   private int getSensorValue() {
-    float d = data.getChild("Sensor").getChild("Sensor_Value").getFloatContent() * 51;
-    return (int) d;
+    return (int) (data.getChild("Sensor").getChild("Sensor_Value").getFloatContent() * 100);
   }
 }
