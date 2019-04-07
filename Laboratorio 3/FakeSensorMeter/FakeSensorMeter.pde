@@ -16,4 +16,6 @@ void draw() {
   for (int i = 0; i < 4; i++) {
     meters[i].updateSensorData();
   }
+  
+  delay(100);
 }
