@@ -24,8 +24,8 @@ La aplicación consiste en tener relacionado los 12 pines digitales, con seis ob
 
 Al tener cargada la aplicación, nos mostrará una flor. Al presionar sobre un pétalo, mandará un mensaje por bluetooth al Arduino indicando que led deberá de encender. Cada pétalo está asignado solamente a un led.
 
-![imgs/flor-normal.jpg]("Estado normal de la flor")
-![imgs/flor-aleterada.jpg]("Flor despues de recibir datos del Arduino")
+!["Estado normal de la flor"](imgs/flor-normal.jpg)
+![Flor despues de recibir datos del Arduino](imgs/flor-aleterada.jpg)
 
 ### Arduino
 
